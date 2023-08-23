@@ -1,0 +1,153 @@
+#version 460 core
+
+uniform mat4 u_Model;           // the model matrix
+uniform mat4 u_View;            // the view matrix
+uniform mat4 u_Projection;      // the projection matrix
+
+uniform float u_Time;
+uniform int u_Seed;
+
+uniform float u_Amplitude;
+uniform int u_Octave;
+uniform float u_Persistance;
+uniform float u_Lunarcity;
+uniform bool u_IsTerrainSmooth;
+
+uniform float u_Delta;
+
+const mat2 m2 = mat2(  0.80f,  0.60f,
+                      -0.60f,  0.80f);
+
+vec2 random(vec2 uv) 
+{
+    uv = vec2( dot(uv, vec2(127.1,311.7) ),
+               dot(uv, vec2(269.5,183.3) ) );
+    return -1.0 + 2.0 * fract(sin(uv) * 43758.5453123 * mod(u_Seed, 256.0f));
+}
+float hash(vec2 uv)
+{
+    uv  = 50.0 * fract(uv * 0.3183099f);
+    return fract(uv.x * uv.y * (uv.x + uv.y));
+}
+vec2 Smooth(vec2 t)
+{
+    if(u_IsTerrainSmooth)
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+    else
+    {
+        return t * t * (3.0f - 2.0f * t);
+    }
+}
+
+float PerlinNoise(vec2 position)
+{
+    vec2 i = floor(position);
+    vec2 f = fract(position);
+
+    // Smooth Interpolation
+    vec2 u = Smooth(f);
+
+    // Attempt #1
+
+    vec2 a = random(i + vec2(0.0,0.0));
+    vec2 b = random(i + vec2(1.0,0.0));
+    vec2 c = random(i + vec2(0.0,1.0));
+    vec2 d = random(i + vec2(1.0,1.0));
+
+    // Mix 4 coorners percentages
+    return mix( mix( dot(a, f - vec2(0.0,0.0)),
+                     dot(b, f - vec2(1.0,0.0)), u.x),
+                mix( dot(c, f - vec2(0.0,1.0)),
+                     dot(d, f - vec2(1.0,1.0)), u.x), u.y) + 0.5f;
+
+
+    // Attempt #2
+    /*
+    float a = hash(i + vec2(0.0,0.0));
+    float b = hash(i + vec2(1.0,0.0));
+    float c = hash(i + vec2(0.0,1.0));
+    float d = hash(i + vec2(1.0,1.0));
+    return -1.0+2.0*(a + (b-a)*u.x + (c-a)*u.y + (a - b - c + d)*u.x*u.y);
+    */
+}
+float PerlinNoise(vec2 position, float amplitude, int octaveCount, float persistence, float lacunarity)
+{
+    float value = 0.0f;
+    float maxValue = 0.0f;
+    float currentAmplitude = 1.0f;
+    float currentFrequency = 1.0f;
+    for (int i = 0; i < octaveCount; ++i) 
+    {
+        value += PerlinNoise(position * currentFrequency) * currentAmplitude;
+        maxValue += currentAmplitude;
+        currentAmplitude  *= persistence;
+        currentFrequency *= lacunarity;
+    }
+    return value / maxValue * amplitude;
+}
+
+layout (quads, fractional_odd_spacing, ccw) in;
+
+in vec2 TextureCoords[];
+
+// send to Fragment Shader for coloring
+out float Height;
+out vec2 TextureCoord;
+out vec3 normal;
+out vec3 FragPos;
+
+void main()
+{
+    // get patch coordinate
+    float u = gl_TessCoord.x;
+    float v = gl_TessCoord.y;
+
+    // ----------------------------------------------------------------------
+    // retrieve control point texture coordinates
+    vec2 t00 = TextureCoords[0];
+    vec2 t01 = TextureCoords[1];
+    vec2 t10 = TextureCoords[2];
+    vec2 t11 = TextureCoords[3];
+
+    // bilinearly interpolate texture coordinate across patch
+    vec2 t0 = (t01 - t00) * u + t00;
+    vec2 t1 = (t11 - t10) * u + t10;
+    TextureCoord = (t1 - t0) * v + t0;
+    
+    // retrieve control point position coordinates
+    vec4 p00 = gl_in[0].gl_Position;
+    vec4 p01 = gl_in[1].gl_Position;
+    vec4 p10 = gl_in[2].gl_Position;
+    vec4 p11 = gl_in[3].gl_Position;
+
+    // bilinearly interpolate position coordinate across patch
+    vec4 p0 = (p01 - p00) * u + p00;
+    vec4 p1 = (p11 - p10) * u + p10;
+    vec4 p = (p1 - p0) * v + p0;
+
+    // Calculate height of point p
+    Height = PerlinNoise(p.xz / 4.0f, u_Amplitude, u_Octave, u_Persistance, u_Lunarcity);
+
+    // displace point along normal
+    p.y = Height;
+    Height /= u_Amplitude;
+
+    // Calculate the height at the neighboring positions
+    const float delta = u_Delta;
+    float height_dx = PerlinNoise(p.xz / 4.0f + vec2(delta, 0.0), u_Amplitude, u_Octave, u_Persistance, u_Lunarcity);
+    float height_dz = PerlinNoise(p.xz / 4.0f + vec2(0.0, delta), u_Amplitude, u_Octave, u_Persistance, u_Lunarcity);
+
+    // Calculate the partial derivatives with respect to x and z
+    float dheight_dx = (height_dx / u_Amplitude - Height) / delta;
+    float dheight_dz = (height_dz / u_Amplitude - Height) / delta;
+
+    // Construct the normal vector from the partial derivatives
+    normal = normalize(vec3(-dheight_dx, 1.0, -dheight_dz));
+
+    // ----------------------------------------------------------------------
+    // output patch point position in clip space
+    gl_Position = u_Projection * u_View * u_Model * p;
+    FragPos = vec3(u_Model * p);
+}
