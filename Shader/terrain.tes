@@ -18,11 +18,16 @@ uniform float u_Delta;
 const mat2 m2 = mat2(  0.80f,  0.60f,
                       -0.60f,  0.80f);
 
+float random(float val)
+{
+    val = val * 197.3;
+    return -1.0f + 2.0f * fract(sin(val) * 27671.150784);
+}
 vec2 random(vec2 uv) 
 {
     uv = vec2( dot(uv, vec2(127.1,311.7) ),
                dot(uv, vec2(269.5,183.3) ) );
-    return -1.0 + 2.0 * fract(sin(uv) * 43758.5453123 * mod(u_Seed, 256.0f));
+    return -1.0 + 2.0 * fract(sin(uv) * 43758.5453123 * random(u_Seed));
 }
 float hash(vec2 uv)
 {
