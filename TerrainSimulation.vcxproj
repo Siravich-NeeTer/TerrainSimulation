@@ -173,6 +173,7 @@
     <ClCompile Include="src\Renderer\VertexArrayObject.cpp" />
     <ClCompile Include="src\Renderer\VertexBufferObject.cpp" />
     <ClCompile Include="src\Terrain.cpp" />
+    <ClCompile Include="src\Water.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -197,6 +198,7 @@
     <ClInclude Include="src\Renderer\VertexBufferObject.h" />
     <ClInclude Include="src\Renderer\ShaderUtility.h" />
     <ClInclude Include="src\Terrain.h" />
+    <ClInclude Include="src\Water.h" />
     <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -206,6 +208,8 @@
     <None Include="Shader\terrain.tcs" />
     <None Include="Shader\terrain.tes" />
     <None Include="Shader\terrain.vert" />
+    <None Include="Shader\water.frag" />
+    <None Include="Shader\water.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Texture\awesomeface.png" />

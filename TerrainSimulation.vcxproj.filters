@@ -87,6 +87,9 @@
     <ClCompile Include="src\Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Water.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\object.frag">
@@ -99,6 +102,8 @@
     <None Include="Shader\terrain.frag" />
     <None Include="Shader\terrain.tcs" />
     <None Include="Shader\terrain.tes" />
+    <None Include="Shader\water.vert" />
+    <None Include="Shader\water.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External Libraries\stb\stb_image.h">
@@ -165,6 +170,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

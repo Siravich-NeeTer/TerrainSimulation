@@ -8,6 +8,7 @@
 #include "Camera.h"
 
 #include "Terrain.h"
+#include "Water.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -26,7 +27,7 @@ void UpdateUIMenu(Terrain& terrain);
 
 int main()
 {
-	Window window(SCREEN_WIDTH, SCREEN_HEIGHT, "Cloth_Simulation");
+	Window window(SCREEN_WIDTH, SCREEN_HEIGHT, "TerrainSimulation");
 	window.Init();
 
 	if (window.IsNull())
@@ -48,6 +49,7 @@ int main()
 
 	Mesh cubeMesh;
 	Terrain terrain(100, 100);
+	Water water(100, 100);
 
 	// --------------- Game Loop ---------------
 	float prevTime = 0.0f;
@@ -114,6 +116,17 @@ int main()
 		terrain.Render(terrainShader);
 		// --------------------------------------------------------------------
 
+		// -------------------------- Render Water --------------------------
+		const Shader& waterShader = water.GetShader();
+		waterShader.Activate();
+		//waterShader.SetFloat("u_Time", currentTime);
+		waterShader.SetMat4("u_Model", glm::mat4(1.0f));
+		waterShader.SetMat4("u_View", cam.GetViewMatrix());
+		waterShader.SetMat4("u_Projection", glm::perspective(glm::radians(45.0f), (float)window.GetWidth() / (float)window.GetHeight(), 0.1f, 100.0f));
+
+		water.Render();
+		// ------------------------------------------------------------------
+		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

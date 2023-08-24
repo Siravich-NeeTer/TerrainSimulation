@@ -75,7 +75,7 @@ class Terrain
 		float m_Lunarcity = 2.0f;
 		bool m_IsSmooth = true;
 		int m_Seed = 500;
-		float m_Delta = 0.005f;
+		float m_Delta = 0.05f;
 		
 		VertexArrayObject m_TerrainVAO;
 		VertexBufferObject m_TerrainVBO;
