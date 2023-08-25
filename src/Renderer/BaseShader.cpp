@@ -21,14 +21,32 @@ std::string BaseShader::LoadShaderCodeFromFile(const char* shaderPath)
 {
 	std::string shaderCode;
 	std::ifstream shaderFile;
-	shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	shaderFile.exceptions(std::ifstream::badbit);
 	try
 	{
 		shaderFile.open(shaderPath);
 		std::stringstream shaderStream;
-
+		
 		// Read file's buffer contents into streams
-		shaderStream << shaderFile.rdbuf();
+		// shaderStream << shaderFile.rdbuf();
+
+		std::string line;
+		while (std::getline(shaderFile, line))
+		{
+			//		   [9]		  [size - 9]
+			// #include "SomeFile.h"
+			if (line.find("#include") != std::string::npos)
+			{
+				std::string includeFileString = line.substr(10, line.size() - 10 - 1);
+				std::ifstream includeFile(includeFileString);
+				shaderStream << includeFile.rdbuf();
+				includeFile.close();
+			}
+			else
+			{
+				shaderStream << line << "\n";
+			}
+		}
 
 		shaderFile.close();
 		// Convert stream into string

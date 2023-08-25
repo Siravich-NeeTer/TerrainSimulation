@@ -1,0 +1,82 @@
+#version 460 core
+
+float random(float val)
+{
+    val = val * 197.3;
+    return -1.0f + 2.0f * fract(sin(val) * 27671.150784);
+}
+vec2 random(vec2 uv) 
+{
+    uv = vec2( dot(uv, vec2(127.1,311.7) ),
+               dot(uv, vec2(269.5,183.3) ) );
+    return -1.0 + 2.0 * fract(sin(uv) * 43758.5453123);
+}
+vec2 random(vec2 uv, float seed) 
+{
+    uv = vec2( dot(uv, vec2(127.1,311.7) ),
+               dot(uv, vec2(269.5,183.3) ) );
+    return -1.0 + 2.0 * fract(sin(uv) * 43758.5453123 * random(seed));
+}
+float hash(vec2 uv)
+{
+    uv  = 50.0 * fract(uv * 0.3183099f);
+    return fract(uv.x * uv.y * (uv.x + uv.y));
+}
+vec2 Smooth(vec2 t, bool isSmooth)
+{
+    if(isSmooth)
+    {
+        return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+    else
+    {
+        return t * t * (3.0f - 2.0f * t);
+    }
+}
+
+float PerlinNoise(vec2 position, int seed, bool isSmooth)
+{
+    vec2 i = floor(position);
+    vec2 f = fract(position);
+
+    // Smooth Interpolation
+    vec2 u = Smooth(f, isSmooth);
+
+    // Attempt #1
+
+    vec2 a = random(i + vec2(0.0,0.0), seed);
+    vec2 b = random(i + vec2(1.0,0.0), seed);
+    vec2 c = random(i + vec2(0.0,1.0), seed);
+    vec2 d = random(i + vec2(1.0,1.0), seed);
+
+    // Mix 4 coorners percentages
+    return mix( mix( dot(a, f - vec2(0.0,0.0)),
+                     dot(b, f - vec2(1.0,0.0)), u.x),
+                mix( dot(c, f - vec2(0.0,1.0)),
+                     dot(d, f - vec2(1.0,1.0)), u.x), u.y) + 0.5f;
+
+
+    // Attempt #2
+    /*
+    float a = hash(i + vec2(0.0,0.0));
+    float b = hash(i + vec2(1.0,0.0));
+    float c = hash(i + vec2(0.0,1.0));
+    float d = hash(i + vec2(1.0,1.0));
+    return -1.0+2.0*(a + (b-a)*u.x + (c-a)*u.y + (a - b - c + d)*u.x*u.y);
+    */
+}
+float PerlinNoise(vec2 position, float amplitude, int octaveCount, float persistence, float lacunarity, int seed, bool isSmooth)
+{
+    float value = 0.0f;
+    float maxValue = 0.0f;
+    float currentAmplitude = 1.0f;
+    float currentFrequency = 1.0f;
+    for (int i = 0; i < octaveCount; ++i) 
+    {
+        value += PerlinNoise(position * currentFrequency, seed, isSmooth) * currentAmplitude;
+        maxValue += currentAmplitude;
+        currentAmplitude  *= persistence;
+        currentFrequency *= lacunarity;
+    }
+    return value / maxValue * amplitude;
+}

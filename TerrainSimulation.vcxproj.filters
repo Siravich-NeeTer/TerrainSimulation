@@ -104,6 +104,7 @@
     <None Include="Shader\terrain.tes" />
     <None Include="Shader\water.vert" />
     <None Include="Shader\water.frag" />
+    <None Include="Shader\noise.util" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="External Libraries\stb\stb_image.h">

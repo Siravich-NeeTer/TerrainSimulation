@@ -202,6 +202,7 @@
     <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shader\noise.util" />
     <None Include="Shader\object.frag" />
     <None Include="Shader\object.vert" />
     <None Include="Shader\terrain.frag" />
